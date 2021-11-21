@@ -1,7 +1,7 @@
 ---
 kind: pipeline
-name: nixos-tests
-type: exec
+name: linux-amd64
+type: bash
 
 steps:
 - name: test
