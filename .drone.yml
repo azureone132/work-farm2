@@ -1,161 +1,26 @@
 ---
 kind: pipeline
-name: amd64
+type: exec
+name: linux-amd64
 
 platform:
-  os: linux
   arch: amd64
-
-steps:
-- name: docker-build
-  image: plugins/docker
-  settings:
-    repo: "rancher/dqlite-build"
-    dry_run: true
-- name: docker-publish
-  image: plugins/docker
-  environment:
-    GITHUB_TOKEN:
-      from_secret: GITHUB_TOKEN
-  settings:
-    build_args_from_env:
-    - GITHUB_TOKEN
-    - DRONE_BUILD_EVENT
-    - DRONE_REPO_OWNER
-    - DRONE_REPO_NAME
-    - DRONE_COMMIT_REF
-    - DRONE_STAGE_ARCH
-    password:
-      from_secret: docker_password
-    repo: "rancher/dqlite-build"
-    tag: "${DRONE_TAG}-amd64"
-    username:
-      from_secret: docker_username
-  when:
-    instance:
-    - drone-publish.rancher.io
-    ref:
-    - refs/head/master
-    - refs/tags/*
-    event:
-    - tag
-
----
-kind: pipeline
-name: arm64
-
-platform:
   os: linux
-  arch: arm64
+
+trigger:
+  event:
+    exclude:
+      - pull_request
+      - tag
 
 steps:
-- name: docker-build
-  image: plugins/docker
-  settings:
-    repo: "rancher/dqlite-build"
-    dry_run: true
-- name: docker-publish
-  image: plugins/docker
-  environment:
-    GITHUB_TOKEN:
-      from_secret: GITHUB_TOKEN
-  settings:
-    build_args_from_env:
-    - GITHUB_TOKEN
-    - DRONE_BUILD_EVENT
-    - DRONE_REPO_OWNER
-    - DRONE_REPO_NAME
-    - DRONE_COMMIT_REF
-    - DRONE_STAGE_ARCH
-    password:
-      from_secret: docker_password
-    repo: "rancher/dqlite-build"
-    tag: "${DRONE_TAG}-arm64"
-    username:
-      from_secret: docker_username
-  when:
-    instance:
-    - drone-publish.rancher.io
-    ref:
-    - refs/head/master
-    - refs/tags/*
-    event:
-    - tag
-
----
-kind: pipeline
-name: arm
-
-platform:
-  os: linux
-  arch: arm
-
-steps:
-- name: docker-build
-  image: plugins/docker
-  settings:
-    repo: "rancher/dqlite-build"
-    dry_run: true
-- name: docker-publish
-  image: plugins/docker
-  environment:
-    GITHUB_TOKEN:
-      from_secret: GITHUB_TOKEN
-  settings:
-    build_args_from_env:
-    - GITHUB_TOKEN
-    - DRONE_BUILD_EVENT
-    - DRONE_REPO_OWNER
-    - DRONE_REPO_NAME
-    - DRONE_COMMIT_REF
-    - DRONE_STAGE_ARCH
-    password:
-      from_secret: docker_password
-    repo: "rancher/dqlite-build"
-    tag: "${DRONE_TAG}-arm"
-    username:
-      from_secret: docker_username
-  when:
-    instance:
-    - drone-publish.rancher.io
-    ref:
-    - refs/head/master
-    - refs/tags/*
-    event:
-    - tag
-
----
-kind: pipeline
-name: manifest
-
-platform:
-  os: linux
-  arch: amd64
-
-steps:
-- name: manifest
-  image: plugins/manifest:1.0.2
-  settings:
-    username:
-      from_secret: docker_username
-    password:
-      from_secret: docker_password
-    platforms:
-      - linux/amd64
-      - linux/arm64
-      - linux/arm
-    target: "rancher/dqlite-build:${DRONE_TAG}"
-    template: "rancher/dqlite-build:${DRONE_TAG}-ARCH"
-  when:
-    instance:
-    - drone-publish.rancher.io
-    ref:
-    - refs/head/master
-    - refs/tags/*
-    event:
-    - tag
-
-depends_on:
-- amd64
-- arm64
-- arm
+  - name: up
+    environment:
+      DOCKER_USERNAME:
+        from_secret: docker_username
+      DOCKER_PASSWORD:
+        from_secret: docker_password
+      CODECOV_TOKEN:
+        from_secret: codecov_token
+    commands:
+        - lscpu
