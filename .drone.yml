@@ -3,6 +3,10 @@ kind: pipeline
 name: nixos-tests
 type: exec
 
+platform:
+  os: linux
+  arch: amd64
+
 steps:
 - name: test
   commands:
