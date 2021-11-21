@@ -1,14 +1,15 @@
 ---
 kind: pipeline
-name: linux-amd64
-
-platform:
-  os: linux
-  arch: amd64
+name: nixos-tests
+type: exec
 
 steps:
-- name: build-push
-  pull: always
-  image: golang:1.14
+- name: test
   commands:
-  - go build -v -a -o release/linux/amd64/drone-covergates
+  - nix-build -I nixpkgs=https://github.com/NixOS/nixpkgs/archive/nixpkgs-unstable.tar.gz -A sops-install-secrets.tests
+  - nix-build -I nixpkgs=https://github.com/NixOS/nixpkgs/archive/nixos-21.05.tar.gz -A sops-install-secrets.tests
+---
+kind: signature
+hmac: df547336a0317ffe1dd419138c0552b79189c7caf0cc86c98bba9ca5bea22ea9
+
+...
